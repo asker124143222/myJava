@@ -24,8 +24,9 @@ public class CglibProxyMain2 {
             @Override
             public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
                 System.out.println("进入cglib代理，被代理方法："+method.getName()+",参数："+ Arrays.toString(args));
+                // obj是代理对象，所以必须用invokeSuper调用父类的方法
+                // 如果是proxy.invoke，那么入参必须是被代理对象
                 Object result = proxy.invokeSuper(obj, args);
-
                 System.out.println("代理结束，返回值："+result);
                 return result;
             }
@@ -35,6 +36,8 @@ public class CglibProxyMain2 {
         loginService.logout("admin");
         System.out.println();
         System.out.println("-----------------");
+
+
         enhancer = new Enhancer();
         enhancer.setSuperclass(UserServiceImpl.class);
         enhancer.setCallback(new MethodInterceptor() {

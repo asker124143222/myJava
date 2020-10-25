@@ -28,6 +28,21 @@ public class ProxyByJDK implements InvocationHandler {
                 this);
     }
 
+    /**
+     *
+     * @param clazz 被代理的类
+     * @return 代理对象
+     * @throws IllegalAccessException
+     * @throws InstantiationException
+     */
+    public Object getProxyInstance(Class<?> clazz) throws IllegalAccessException, InstantiationException {
+        Object proxied = clazz.newInstance();
+        this.proxied = proxied;
+        return Proxy.newProxyInstance(ClassLoader.getSystemClassLoader(),
+                proxied.getClass().getInterfaces(),
+                this);
+    }
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         System.out.println("进入JDK代理，被代理方法："+method.getName()+"，参数："+ Arrays.toString(args));
