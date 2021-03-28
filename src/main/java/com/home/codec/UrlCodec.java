@@ -8,7 +8,7 @@ import java.net.URLEncoder;
  * @Author: xu.dm
  * @Date: 2021/1/12 10:18
  * @Version: 1.0
- * @Description: TODO
+ * @Description: URL编码测试
  **/
 public class UrlCodec {
     public static void main(String[] args) throws UnsupportedEncodingException {
