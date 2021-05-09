@@ -36,10 +36,19 @@ public class KeyTools {
 //        System.out.println(privateKey);
 //
 //        System.out.println();
-//        KeyPair keyPair = getKeyPair();
-//        System.out.println(keyPair);
+        KeyPair keyPair = getKeyPair();
+        System.out.println(keyPair);
+        BASE64Encoder b64 = new BASE64Encoder();
+        System.out.println("-----BEGIN PUBLIC KEY-----");
+        System.out.println(b64.encode(keyPair.getPublic().getEncoded()));
+        System.out.println("-----END PUBLIC KEY-----");
+        System.out.println("");
 
-        createKeyStoreFile();
+        System.out.println("-----BEGIN PRIVATE KEY-----");
+        System.out.println(b64.encode(keyPair.getPrivate().getEncoded()));
+        System.out.println("-----END PRIVATE KEY-----");
+
+//        createKeyStoreFile();
 
     }
 
@@ -115,9 +124,10 @@ public class KeyTools {
      */
     public static KeyPair getKeyPair() throws Exception {
         String storepass = "13987664391";
-        String keyAlias = "honor";
+        String keyAlias = "wood";
+//        String keyAlias = "honor";
         KeyStore keystore = KeyStore.getInstance("PKCS12");
-        keystore.load(KeyTools.class.getResourceAsStream("/key/home.pkcs12"), storepass.toCharArray());
+        keystore.load(KeyTools.class.getResourceAsStream("/key/wood.p12"), storepass.toCharArray());
 
         RSAPrivateCrtKey key = (RSAPrivateCrtKey) keystore.getKey(keyAlias, storepass.toCharArray());
         RSAPublicKeySpec spec = new RSAPublicKeySpec(key.getModulus(), key.getPublicExponent());

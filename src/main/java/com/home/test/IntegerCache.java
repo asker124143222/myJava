@@ -24,5 +24,15 @@ public class IntegerCache {
         System.out.println(i3 == i4);
         System.out.println(Integer.valueOf(1) == Integer.valueOf(1));
         System.out.println(Integer.valueOf(128) == Integer.valueOf(128));
+
+        Integer i5 = 5;
+        Integer i6 = 5;
+
+        System.out.println(i5 == i6);
+
+        Integer i7 = 128;
+        Integer i8 = 128;
+
+        System.out.println(i7 == i8);
     }
 }
