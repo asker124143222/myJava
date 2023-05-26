@@ -1,5 +1,6 @@
 package com.home.test;
 
+import java.util.LinkedHashMap;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,6 +22,18 @@ public class MyTest {
         System.out.println(" =============== ");
     }
 
+
+    private void test() {
+        LinkedHashMap<Object, Object> map = new LinkedHashMap<>();
+
+        String uuu = UUID.randomUUID().toString();
+        System.out.println(uuu);
+
+        map.put(uuu, uuu.hashCode());
+
+
+
+    }
 
 
 }
