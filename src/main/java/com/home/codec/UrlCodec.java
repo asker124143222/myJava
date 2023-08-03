@@ -19,5 +19,13 @@ public class UrlCodec {
         String decode = URLDecoder.decode(encode, "utf-8");
         System.out.println(decode);
 
+
+        String s2 = "云D60029";
+        String encode2 = URLEncoder.encode(s2, "UTF-8");
+        System.out.println(encode2);
+
+        String decode2 = URLDecoder.decode(encode2, "utf-8");
+        System.out.println(decode2);
+
     }
 }
