@@ -27,13 +27,13 @@ public class DownloadTest implements ProgressListener {
         String bucketName = "ynyc-zm-oss-dev";
 
         // 填写Object完整路径，完整路径中不能包含Bucket名称。例如exampledir/exampleobject.txt。
-        // String objectName = "wood-cloud/综合类A模板.ppt";
+        String objectName = "wood-cloud/综合类A模板.ppt";
         // 填写本地文件的完整路径，例如D:\\localpath\\examplefile.txt。
-        // String pathName = "D:\\temp\\oss-test\\综合类A模板.ppt";
+        String pathName = "D:\\temp\\oss-download\\综合类A模板.ppt";
 
 
-        String objectName = "wood-cloud/业务.mp4";
-        String pathName = "D:\\temp\\oss-download\\业务.mp4";
+        //String objectName = "wood-cloud/业务.mp4";
+        //String pathName = "D:\\temp\\oss-download\\业务.mp4";
 
         // 创建OSSClient实例。
         OSS ossClient = new OSSClientBuilder().build(endpoint, ak, sk);

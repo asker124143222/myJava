@@ -15,7 +15,8 @@ public class ProducerTest {
         String ak = "uKdpuonbgH7IbO1x";
         String sk = "AbWyZLA0bxdwEpv6MBgdcBx6sf4G59";
         String nameSrvAddr = "http://MQ_INST_1711488696525962_BieYEKtM.cn-kunming-ynyc-d01.mq.namesrv.res.ynyc.com:9876";
-        String topic = "topicWood2";
+        // String nameSrvAddr = "10.202.217.185:9876";
+        String topic = "topicWood3";
         String tags = "TagA";
         int count = 10;
         Properties properties = new Properties();
