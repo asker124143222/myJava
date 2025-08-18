@@ -13,13 +13,16 @@ public class MyTest {
         String str2 = str.replaceAll("\\\\x", "%");
         System.out.println(str2);
 
-        System.out.println(URLDecoder.decode(str2,"gbk"));
+        System.out.println(URLDecoder.decode(str2, "gbk"));
 
         String str3 = "云";
-        String str4 = new String(str3.getBytes(),"GBK");
+        String str4 = new String(str3.getBytes(), "GBK");
         System.out.println(str4);
 
+        Double currentRate = Math.round((945.21 / 1000.22)*100) * 0.01d;
+        System.out.println(currentRate);
 
+        System.out.println(String.format("%.2f", 3.1465926001));
     }
 
 
