@@ -14,8 +14,8 @@ public class ClientSocketTest {
              BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
 
             // 网络操作
-            out.println("GET / HTTP/1.1");
-            out.println("Host: example.com");
+            out.println("GET RESOURCE:1");
+            out.println("AUTH TOM:121");
             out.println(); // 空行表示请求头结束
 
             String responseLine;

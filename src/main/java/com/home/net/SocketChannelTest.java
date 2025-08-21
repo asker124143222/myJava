@@ -1,0 +1,68 @@
+package com.home.net;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.SocketChannel;
+
+/**
+ * @author: xu.dm
+ * @since: 2025/8/21 11:18
+ **/
+public class SocketChannelTest {
+    public static void main(String[] args) throws Exception {
+        // 创建SocketChannel并连接到服务器
+        SocketChannel socketChannel = SocketChannel.open();
+        socketChannel.configureBlocking(false);
+        socketChannel.connect(new InetSocketAddress("localhost", 8080));
+
+        while (!socketChannel.finishConnect()) {
+            Thread.sleep(100); // 等待连接建立
+        }
+
+        String filename = "E:\\myProgram\\java\\learning-master\\doc\\java\\myJava.txt";
+
+        try(FileInputStream fis = new FileInputStream(filename)){
+            byte[] bytes = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = fis.read(bytes)) != -1) {
+                // 注意：最后一次读取可能不足1024字节
+                System.out.println("读取到 " + bytesRead + " 字节数据");
+                String data = new String(bytes, 0, bytesRead);
+                System.out.println("发送数据: " + data);
+                ByteBuffer buffer = ByteBuffer.wrap(bytes, 0, bytesRead);
+                // 确保所有数据都被写入
+                while (buffer.hasRemaining()) {
+                    int written = socketChannel.write(buffer);
+                    if (written == 0) {
+                        Thread.sleep(10); // 如果没有写入任何数据，短暂等待
+                    }
+                }
+            }
+        }
+
+        // 接收响应
+        ByteBuffer responseBuffer = ByteBuffer.allocate(1024);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        int bytesRead;
+        while ((bytesRead = socketChannel.read(responseBuffer))>0) {
+            System.out.println("已经读取：" + bytesRead + "字节");
+            responseBuffer.flip();
+            byte[] data = new byte[responseBuffer.remaining()];
+            responseBuffer.get(data);
+            outputStream.write(data);
+            responseBuffer.clear();
+        }
+
+        // 只有当有数据时才处理
+        if (outputStream.size() > 0) {
+            String received = new String(outputStream.toByteArray());
+            System.out.println("接收到服务器: " + received);
+        }
+
+        socketChannel.close();
+    }
+}
