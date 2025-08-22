@@ -20,36 +20,39 @@ public class ServerSocketChannelTest {
         System.out.println("服务器启动，监听端口 8080...");
 
         while (true) {
-            // 接受连接
-            SocketChannel socketChannel = serverSocketChannel.accept();
-            if (socketChannel != null) {
-                System.out.println("客户端已连接" + socketChannel);
+            try (SocketChannel socketChannel = serverSocketChannel.accept();
+                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
-                // 读取客户端数据
-                ByteBuffer buffer = ByteBuffer.allocate(1024);
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                int bytesRead;
+                if (socketChannel != null) {
+                    System.out.println("客户端已连接" + socketChannel);
 
-                if ((bytesRead = socketChannel.read(buffer)) > 0) {
-                    System.out.println("已经读取：" + bytesRead + "字节");
-                    buffer.flip();
-                    byte[] data = new byte[buffer.remaining()];
-                    buffer.get(data);
-                    outputStream.write(data);
-                    buffer.clear();
+                    // 读取客户端数据
+                    ByteBuffer buffer = ByteBuffer.allocate(1024);
 
+                    int bytesRead;
+                    while ((bytesRead = socketChannel.read(buffer)) > 0) {
+                        System.out.println("接收到：" + bytesRead + "字节");
+                        buffer.flip();
+                        byte[] data = new byte[buffer.remaining()];
+                        buffer.get(data);
+                        outputStream.write(data);
+                        buffer.clear();
+                    }
+                    // 只有当有数据时才处理
+                    if (outputStream.size() > 0) {
+                        String received = new String(outputStream.toByteArray());
+                        System.out.println("接收到信息\n: " + received);
+
+                        // 回复客户端
+                        String response = "服务器回复如下\n: " + received;
+                        ByteBuffer responseBuffer = ByteBuffer.wrap(response.getBytes());
+                        socketChannel.write(responseBuffer);
+                        outputStream.reset();
+                    }
                 }
-                // 只有当有数据时才处理
-                if (outputStream.size() > 0) {
-                    String received = new String(outputStream.toByteArray());
-                    System.out.println("接收到: " + received);
-
-                    // 回复客户端
-                    String response = "服务器收到: " + received;
-                    ByteBuffer responseBuffer = ByteBuffer.wrap(response.getBytes());
-                    socketChannel.write(responseBuffer);
-                }
-                socketChannel.close();
+            } catch (Exception e) {
+                // 异常处理
+                e.printStackTrace();
             }
 
             // 避免CPU占用过高

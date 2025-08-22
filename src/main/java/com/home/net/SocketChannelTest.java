@@ -1,12 +1,11 @@
 package com.home.net;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author: xu.dm
@@ -23,15 +22,15 @@ public class SocketChannelTest {
             Thread.sleep(100); // 等待连接建立
         }
 
-        String filename = "E:\\myProgram\\java\\learning-master\\doc\\java\\myJava.txt";
+        String filename = "E:\\myProgram\\java\\learning-master\\doc\\k8s\\k8s安装笔记3.md";
 
         try(FileInputStream fis = new FileInputStream(filename)){
             byte[] bytes = new byte[1024];
             int bytesRead;
             while ((bytesRead = fis.read(bytes)) != -1) {
                 // 注意：最后一次读取可能不足1024字节
-                System.out.println("读取到 " + bytesRead + " 字节数据");
-                String data = new String(bytes, 0, bytesRead);
+                System.out.println("从文件读取到 " + bytesRead + " 字节数据");
+                String data = new String(bytes, 0, bytesRead, StandardCharsets.UTF_8);
                 System.out.println("发送数据: " + data);
                 ByteBuffer buffer = ByteBuffer.wrap(bytes, 0, bytesRead);
                 // 确保所有数据都被写入
@@ -49,7 +48,7 @@ public class SocketChannelTest {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         int bytesRead;
         while ((bytesRead = socketChannel.read(responseBuffer))>0) {
-            System.out.println("已经读取：" + bytesRead + "字节");
+            System.out.println("从服务器读取：" + bytesRead + "字节");
             responseBuffer.flip();
             byte[] data = new byte[responseBuffer.remaining()];
             responseBuffer.get(data);
@@ -60,9 +59,9 @@ public class SocketChannelTest {
         // 只有当有数据时才处理
         if (outputStream.size() > 0) {
             String received = new String(outputStream.toByteArray());
-            System.out.println("接收到服务器: " + received);
+            System.out.println("接收到服务器数据: " + received);
         }
-
+        outputStream.close();
         socketChannel.close();
     }
 }
