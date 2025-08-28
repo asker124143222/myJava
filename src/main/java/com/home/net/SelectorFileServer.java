@@ -22,14 +22,14 @@ import java.util.Set;
  * @author: xu.dm
  * @since: 2025/8/27 13:38
  **/
-public class SelectorServer {
+public class SelectorFileServer {
     private Selector selector;
     private ServerSocketChannel serverChannel;
     private final int port;
 
     public static void main(String[] args) {
         try {
-            SelectorServer server = new SelectorServer(8080);
+            SelectorFileServer server = new SelectorFileServer(8080);
             server.start();
         } catch (IOException e) {
             System.err.println("Server error: " + e.getMessage());
@@ -37,7 +37,7 @@ public class SelectorServer {
         }
     }
 
-    public SelectorServer(int port) {
+    public SelectorFileServer(int port) {
         this.port = port;
     }
 
@@ -196,28 +196,11 @@ public class SelectorServer {
             } else {
                 currentData = new byte[buffer.remaining()];
                 buffer.get(currentData);
-                int markLength = context.EOF_MARK.length() + 1;
+
                 // 将当前数据追加到临时缓冲区
                 context.tempBuffer.write(currentData);
-                // 保留最后markLength个字节
-                if(currentData.length>=markLength){
-                    System.arraycopy(currentData, currentData.length-markLength, context.remainingData, 0, markLength);
-                }
-                String tempContent;
-                // 可能出现截断结束标记的情况，需要处理，从上一次保留的缓存读取markLength个字节与当前数据合并后再比较判断
-                // 在这个逻辑中，假定客户端发送数据时，分片可能会出现截断情况。
-                // 实际上，只要客户端和服务端约定好规则，我们不需要做这个判断，因为大文件传输时，及其损耗性能。
-                // 详细见SelectFileServer，去掉此逻辑。
-                if(currentData.length<markLength){
-                    ByteBuffer mergedBuffer = ByteBuffer.allocate(currentData.length+context.remainingData.length);
-                    mergedBuffer.put(context.remainingData);
-                    mergedBuffer.put(currentData);
-                    tempContent = new String(mergedBuffer.array(), StandardCharsets.UTF_8);
-                    System.out.println("出现截断，合并数据: " + tempContent);
-                } else {
-                    tempContent = context.tempBuffer.toString(StandardCharsets.UTF_8.name());
-                }
                 // 检查临时缓冲区中是否包含结束标记
+                String tempContent = context.tempBuffer.toString(StandardCharsets.UTF_8.name());
                 int endIndex = tempContent.indexOf(context.EOF_MARK);
 
                 if (endIndex != -1) {

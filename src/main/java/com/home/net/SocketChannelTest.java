@@ -23,8 +23,10 @@ public class SocketChannelTest {
             Thread.sleep(100); // 等待连接建立
         }
         ByteBuffer buffer;
-        String filename = "E:\\myProgram\\java\\learning-master\\doc\\k8s\\k8s安装笔记3.md";
-//        String filename = "E:\\myProgram\\java\\learning-master\\doc\\java\\myJava.txt";
+//        String filename = "E:\\mv\\big bang\\s11\\S11E01.720p.mp4";
+//        String filename = "E:\\myDown\\secure_49437.zip";
+//        String filename = "E:\\myProgram\\java\\learning-master\\doc\\k8s\\k8s安装笔记3.md";
+        String filename = "E:\\myProgram\\java\\learning-master\\doc\\java\\myJava.txt";
         File file = new File(filename);
         if(!file.exists()){
             throw new RuntimeException("文件不存在");
@@ -53,6 +55,12 @@ public class SocketChannelTest {
                 }
             }
         }
+        // 测试，随便发的点啥，如果是发送文本类文件，可以追加到文末，其他类型二进制文件会导致原文件无法打开。
+//        buffer = ByteBuffer.wrap("这是测试数据，随便发点啥！\n".getBytes(StandardCharsets.UTF_8));
+//        while (buffer.hasRemaining()) {
+//            socketChannel.write(buffer);
+//        }
+
         // 添加结束标记
         String endMarker = "\n###END_OF_FILE###\n";
         buffer = ByteBuffer.wrap(endMarker.getBytes(StandardCharsets.UTF_8));
