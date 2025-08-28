@@ -22,15 +22,16 @@ public class SocketChannelTest {
         while (!socketChannel.finishConnect()) {
             Thread.sleep(100); // 等待连接建立
         }
-
+        ByteBuffer buffer;
         String filename = "E:\\myProgram\\java\\learning-master\\doc\\k8s\\k8s安装笔记3.md";
+//        String filename = "E:\\myProgram\\java\\learning-master\\doc\\java\\myJava.txt";
         File file = new File(filename);
         if(!file.exists()){
             throw new RuntimeException("文件不存在");
         }
 
         // 先发送文件名
-        ByteBuffer buffer = ByteBuffer.wrap((file.getName()+"\n").getBytes(StandardCharsets.UTF_8));
+        buffer = ByteBuffer.wrap((file.getName()+"\n").getBytes(StandardCharsets.UTF_8));
         while (buffer.hasRemaining()) {
             socketChannel.write(buffer);
         }

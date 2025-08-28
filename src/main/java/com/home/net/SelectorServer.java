@@ -151,7 +151,7 @@ public class SelectorServer {
                 buffer.get(data);
                 context.fileNameBuffer.write(data);
 
-                // 检查是否收到文件名结束符（以\n结束）
+                // 检查是否收到文件名结束符（以\n结束）注意文件名不能超过buff长度
                 String accumulatedData = context.fileNameBuffer.toString(StandardCharsets.UTF_8.name());
                 int newlineIndex = accumulatedData.indexOf('\n');
 
@@ -160,10 +160,18 @@ public class SelectorServer {
                     context.fileName = accumulatedData.substring(0, newlineIndex).trim();
 
                     // 创建文件输出流
-                    Path filePath = Paths.get("/logs/received_files", context.fileName);
-                    Files.createDirectories(filePath.getParent());
-                    context.fileOutputStream = new FileOutputStream(filePath.toFile());
-                    context.fileNameReceived = true;
+                    try {
+                        Path filePath = Paths.get("/logs/received_files", context.fileName);
+                        Files.createDirectories(filePath.getParent());
+                        context.fileOutputStream = new FileOutputStream(filePath.toFile());
+                        context.fileNameReceived = true;
+                    } catch (Exception e){
+                        System.out.println("Error creating file: " + e.getMessage());
+                        // 清空读缓冲区
+                        buffer.clear();
+                        return;
+                    }
+
 
                     // 处理文件名后的剩余数据（文件内容的第一部分）
                     if (newlineIndex + 1 < accumulatedData.length()) {
@@ -177,73 +185,85 @@ public class SelectorServer {
 
                     // 清空文件名缓冲区
                     context.fileNameBuffer.reset();
-                    context.fileNameBuffer = new ByteArrayOutputStream();
                 } else {
                     // 没有收到文件名，回写数据直接结束
                     // 清空读缓冲区
                     buffer.clear();
                     return;
                 }
-            }
-            byte[] currentData = new byte[buffer.remaining()];
-            buffer.get(currentData);
-
-            // 将当前数据追加到临时缓冲区
-            context.tempBuffer.write(currentData);
-
-            // 检查临时缓冲区中是否包含结束标记
-            String tempContent = context.tempBuffer.toString(StandardCharsets.UTF_8.name());
-            int endIndex = tempContent.indexOf("\n###END_OF_FILE###\n");
-
-            if (endIndex != -1) {
-                // 找到结束标记，只写入结束标记之前的数据
-                byte[] fileData = tempContent.substring(0, endIndex).getBytes(StandardCharsets.UTF_8);
-                context.fileOutputStream.write(fileData);
-                context.receivedBytes += fileData.length;
-
-                System.out.println("Received final chunk: " + fileData.length +
-                        " bytes, Total: " + context.receivedBytes + " bytes");
-
-                context.transmissionComplete = true;
-
-                // 处理接收到的数据
-                System.out.println("接收到完整信息，总共: " + context.receivedBytes + " bytes");
-
-                // 清空读缓冲区
-                buffer.clear();
-
-                // 准备发送确认响应
-                String response = "Received " + context.receivedBytes + " bytes\n";
-                ByteBuffer wrap = ByteBuffer.wrap(response.getBytes(StandardCharsets.UTF_8));
-                context.writeBuffer.clear();
-                context.writeBuffer.put(wrap);
-                context.writeBuffer.flip();
-
-                // 修改关注事件为 OP_WRITE，准备写数据
-                key.interestOps(SelectionKey.OP_WRITE);
-
-                // 清空临时缓冲区
-                context.tempBuffer.reset();
-                context.tempBuffer = new ByteArrayOutputStream();
             } else {
-                // 没有结束标记，将临时缓冲区的数据写入文件
-                byte[] fileData = context.tempBuffer.toByteArray();
-                context.fileOutputStream.write(fileData);
-                context.receivedBytes += fileData.length;
+                byte[] currentData = new byte[buffer.remaining()];
+                buffer.get(currentData);
 
-                System.out.println("Received chunk: " + fileData.length +
-                        " bytes, Total: " + context.receivedBytes + " bytes");
+                // 将当前数据追加到临时缓冲区
+                context.tempBuffer.write(currentData);
 
-                // 保留最后可能包含结束标记的部分数据
-                if (fileData.length > 20) { // 保留足够长度检查结束标记
-                    byte[] remaining = new byte[Math.min(20, fileData.length)];
-                    System.arraycopy(fileData, fileData.length - remaining.length, remaining, 0, remaining.length);
+                // 检查临时缓冲区中是否包含结束标记
+                String tempContent = context.tempBuffer.toString(StandardCharsets.UTF_8.name());
+                int endIndex = tempContent.indexOf("\n###END_OF_FILE###\n");
+
+                if (endIndex != -1) {
+                    // 找到结束标记，只写入结束标记之前的数据
+                    byte[] fileData = tempContent.substring(0, endIndex).getBytes(StandardCharsets.UTF_8);
+                    context.fileOutputStream.write(fileData);
+                    context.receivedBytes += fileData.length;
+
+                    System.out.println("Received final chunk: " + fileData.length +
+                            " bytes, Total: " + context.receivedBytes + " bytes");
+
+                    context.transmissionComplete = true;
+
+                    // 处理接收到的数据
+                    System.out.println("接收到完整信息，总共: " + context.receivedBytes + " bytes");
+
+                    // 清空读缓冲区
+                    buffer.clear();
+
+                    // 准备发送确认响应
+                    String response = "Received " + context.receivedBytes + " bytes\n";
+                    ByteBuffer wrap = ByteBuffer.wrap(response.getBytes(StandardCharsets.UTF_8));
+                    context.writeBuffer.clear();
+                    context.writeBuffer.put(wrap);
+                    context.writeBuffer.flip();
+
+                    // 修改关注事件为 OP_WRITE，准备写数据
+                    key.interestOps(SelectionKey.OP_WRITE);
+
+                    // 清空临时缓冲区
                     context.tempBuffer.reset();
-                    context.tempBuffer = new ByteArrayOutputStream();
-                    context.tempBuffer.write(remaining);
                 } else {
+                    // 没有结束标记，将临时缓冲区的数据写入文件
+                    byte[] fileData = context.tempBuffer.toByteArray();
+
+                    // 确定需要写入文件的数据量（保留最后20字节用于下次检查）
+                    int bytesToWrite;
+                    byte[] remainingData = new byte[0];
+
+                    if (fileData.length > 20) {
+                        // 如果数据超过20字节，只写入前面的部分，保留最后20字节
+                        bytesToWrite = fileData.length - 20;
+                        context.fileOutputStream.write(fileData, 0, bytesToWrite);
+                        context.receivedBytes += bytesToWrite;
+
+                        // 保存最后20个字节用于下次检查
+                        remainingData = new byte[20];
+                        System.arraycopy(fileData, bytesToWrite, remainingData, 0, 20);
+                    } else {
+                        // 如果数据不足20个字节，全部写入文件
+                        bytesToWrite = fileData.length;
+                        context.fileOutputStream.write(fileData);
+                        context.receivedBytes += bytesToWrite;
+                    }
+
+                    System.out.println("Received chunk: " + bytesToWrite +
+                            " bytes, Total: " + context.receivedBytes + " bytes");
+
+
+                    // 清空临时缓冲区
                     context.tempBuffer.reset();
-                    context.tempBuffer = new ByteArrayOutputStream();
+                    if (remainingData.length > 0) {
+                        context.tempBuffer.write(remainingData);
+                    }
                 }
             }
             buffer.clear();
