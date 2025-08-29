@@ -69,7 +69,7 @@ public class SocketChannelTest {
         }
         System.out.println("===========本地数据发送完毕================");
 
-        Thread.sleep(100);
+        Thread.sleep(1000);
         // 接收响应
         ByteBuffer responseBuffer = ByteBuffer.allocate(1024);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

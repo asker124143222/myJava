@@ -149,9 +149,9 @@ public class SelectorFileServer {
             // 如果尚未接收文件名
             if (!context.fileNameReceived) {
                 // 累积数据直到找到文件名结束符
-                byte[] data = new byte[buffer.remaining()];
-                buffer.get(data);
-                context.fileNameBuffer.write(data);
+                currentData = new byte[buffer.remaining()];
+                buffer.get(currentData);
+                context.fileNameBuffer.write(currentData);
 
                 // 检查是否收到文件名结束符（以\n结束）注意文件名不能超过buff长度
                 String accumulatedData = context.fileNameBuffer.toString(StandardCharsets.UTF_8.name());
@@ -171,6 +171,8 @@ public class SelectorFileServer {
                         System.out.println("Error creating file: " + e.getMessage());
                         // 清空读缓冲区
                         buffer.clear();
+                        key.cancel();
+                        clientChannel.close();
                         return;
                     }
 
@@ -221,7 +223,7 @@ public class SelectorFileServer {
                     buffer.clear();
 
                     // 准备发送确认响应
-                    String response = "Received " + context.receivedBytes + " bytes\n";
+                    String response = "File "+context.fileName+" transfer completed, Received " + context.receivedBytes + " bytes\n";
                     ByteBuffer wrap = ByteBuffer.wrap(response.getBytes(StandardCharsets.UTF_8));
                     context.writeBuffer.clear();
                     context.writeBuffer.put(wrap);
@@ -281,6 +283,5 @@ public class SelectorFileServer {
         boolean transmissionComplete = false; // 传输是否完成
         ByteArrayOutputStream fileNameBuffer = new ByteArrayOutputStream();
         ByteArrayOutputStream tempBuffer = new ByteArrayOutputStream();
-        byte[] remainingData = new byte[20]; // 用于保留每个分片最后20个字节的可能未完整的结束标志数据
     }
 }

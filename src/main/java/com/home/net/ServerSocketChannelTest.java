@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 
 /**
  * @author: xu.dm
@@ -29,31 +30,33 @@ public class ServerSocketChannelTest {
                     // 读取客户端数据
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
 
-                    int bytesRead;
+                    int bytesRead=0;
                     boolean transmissionComplete = false;
+                    String currentContent;
                     while (!transmissionComplete && (bytesRead = socketChannel.read(buffer)) > 0) {
                         System.out.println("接收到：" + bytesRead + "字节");
                         buffer.flip();
                         byte[] data = new byte[buffer.remaining()];
                         buffer.get(data);
-                        outputStream.write(data);
                         buffer.clear();
 
                         // 检查是否收到完整传输结束标记
-                        String currentContent = outputStream.toString();
+                        currentContent = new String(data, StandardCharsets.UTF_8);
                         if (currentContent.endsWith("###END_OF_FILE###\n")) {
                             transmissionComplete = true;
-
-                            // 处理接收到的数据
-                            System.out.println("接收到完整信息:\n" + currentContent);
-
-                            // 发送响应
-                            String response = "服务器已经收到信息";
-                            ByteBuffer responseBuffer = ByteBuffer.wrap(response.getBytes());
-                            socketChannel.write(responseBuffer);
-                            System.out.println("已回复客户端");
+                            byte[] lastData = currentContent.replace("###END_OF_FILE###\n", "").getBytes(StandardCharsets.UTF_8);
+                            outputStream.write(lastData);
+                        }else {
+                            outputStream.write(data);
                         }
                     }
+                    // 处理接收到的数据
+                    System.out.println("接收到完整信息:\n" + new String(outputStream.toByteArray(), StandardCharsets.UTF_8));
+                    // 发送响应
+                    String response = "服务器收到：" + outputStream.size() + "字节";
+                    ByteBuffer responseBuffer = ByteBuffer.wrap(response.getBytes());
+                    socketChannel.write(responseBuffer);
+                    System.out.println("已回复客户端");
 
                 }
             } catch (Exception e) {
