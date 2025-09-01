@@ -24,9 +24,9 @@ public class SocketChannelTest {
         }
         ByteBuffer buffer;
 //        String filename = "E:\\mv\\big bang\\s11\\S11E01.720p.mp4";
-//        String filename = "E:\\myDown\\secure_49437.zip";
+        String filename = "E:\\myDown\\secure_49437.zip";
 //        String filename = "E:\\myProgram\\java\\learning-master\\doc\\k8s\\k8s安装笔记3.md";
-        String filename = "E:\\myProgram\\java\\learning-master\\doc\\java\\myJava.txt";
+//        String filename = "E:\\myProgram\\java\\learning-master\\doc\\java\\myJava.txt";
         File file = new File(filename);
         if(!file.exists()){
             throw new RuntimeException("文件不存在");
